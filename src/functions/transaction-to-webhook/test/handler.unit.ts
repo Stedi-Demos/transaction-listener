@@ -1,18 +1,16 @@
-import test from "ava";
-import { handler } from "../handler.js";
 import {
   mockClient,
-  mockBucketStreamResponse,
   sampleTransactionProcessedEvent,
 } from "@stedi/integrations-sdk/testing";
-import { GetObjectCommand } from "@stedi/sdk-client-buckets";
-import { mock } from "node:test";
-import { MapDocumentCommand, MappingsClient } from "@stedi/sdk-client-mappings";
-import nock from "nock";
 import {
   CoreClient,
   GetTransactionOutputDocumentCommand,
 } from "@stedi/sdk-client-core";
+import { MapDocumentCommand, MappingsClient } from "@stedi/sdk-client-mappings";
+import test from "ava";
+import nock from "nock";
+import { mock } from "node:test";
+import { handler } from "../handler.js";
 
 const transactionId = "transaction-id";
 const sampleTxnProcessedEvent = sampleTransactionProcessedEvent();
@@ -50,14 +48,11 @@ test.serial("delivers EDI as mapped JSON to webhook url", async (t) => {
 
   // confirm body contains the expected JSON
   nock("https://example.com")
-    .post(
-      "/",
+    .post("/", (body) => {
+      t.deepEqual(body, { event, artifact: { detail: sampleEDIAsJSON } });
+      return true;
+    })
 
-      (body) => {
-        t.deepEqual(body, { event, artifact: { detail: sampleEDIAsJSON } });
-        return true;
-      }
-    )
     .reply(201);
 
   mappings

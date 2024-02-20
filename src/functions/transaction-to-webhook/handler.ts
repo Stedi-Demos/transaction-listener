@@ -1,10 +1,10 @@
 import { type CoreTransactionProcessedEvent } from "@stedi/integrations-sdk";
-import { mappingsClient } from "@stedi/integrations-sdk/clients";
 import { MapDocumentCommand } from "@stedi/sdk-client-mappings";
 import { DocumentType } from "@aws-sdk/types";
 import { coreClient } from "./lib/coreClient.js";
 import { GetTransactionOutputDocumentCommand } from "@stedi/sdk-client-core";
 import fetch from "node-fetch";
+import { mappingsClient } from "./lib/mappingsClient.js";
 
 export const handler = async (
   event: CoreTransactionProcessedEvent & { detail: { transactionId: string } }
