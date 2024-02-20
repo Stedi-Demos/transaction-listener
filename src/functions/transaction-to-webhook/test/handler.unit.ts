@@ -48,7 +48,17 @@ test.serial("delivers EDI as mapped JSON to webhook url", async (t) => {
     .get(`/transactions/${transactionId}/output`)
     .reply(200, JSON.stringify(sampleEDIAsJSON));
 
-  nock("https://example.com").post("/").reply(201);
+  // confirm body contains the expected JSON
+  nock("https://example.com")
+    .post(
+      "/",
+
+      (body) => {
+        t.deepEqual(body, { event, artifact: { detail: sampleEDIAsJSON } });
+        return true;
+      }
+    )
+    .reply(201);
 
   mappings
     .on(MapDocumentCommand, {

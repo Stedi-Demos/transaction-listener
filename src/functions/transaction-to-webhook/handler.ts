@@ -42,10 +42,17 @@ export const handler = async (
     throw new Error("File is not a JSON file.");
   }
 
+  const combinedPayload = {
+    event,
+    artifact: {
+      detail: body,
+    },
+  };
+
   const webhookPayload =
     process.env.MAPPING_ID === undefined
-      ? bodyString
-      : await invokeMapping(process.env.MAPPING_ID, body);
+      ? JSON.stringify(combinedPayload)
+      : await invokeMapping(process.env.MAPPING_ID, combinedPayload);
 
   // send JSON to endpoint
   const result = await fetch(webhookUrl, {
