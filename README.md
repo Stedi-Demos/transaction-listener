@@ -64,3 +64,13 @@ This reference implementation allows you to optionally call the Mappings API to 
 ## Requirements
 
 You must have a working Node 18 or later environment installed on your machine before you proceed with the Getting Started steps.
+
+## Configuration
+
+This reference implementation is designed to be deployed as an AWS Lambda function with a [Function URL](https://docs.aws.amazon.com/lambda/latest/dg/lambda-urls.html)https://docs.aws.amazon.com/lambda/latest/dg/lambda-urls.html enabled, but it can be adapted for any architecture or platform of your choosing.
+
+To configure it, you will need to do the following:
+
+1. Populate your trading partner configurations in [the handler code](https://github.com/Stedi-Demos/transaction-listener/blob/main/src/functions/transaction-to-webhook/handler.ts)https://github.com/Stedi-Demos/transaction-listener/blob/main/src/functions/transaction-to-webhook/handler.ts.
+1. Deploy the function with the required environment variables.
+1. Configure a [Stedi Destination webhook](https://www.stedi.com/docs/configure/destinations/configure-webhooks) to send `transaction.processed.v2` events **without a mapping applied** to your Function URL endpoint.
