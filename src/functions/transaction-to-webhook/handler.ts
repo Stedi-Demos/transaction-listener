@@ -27,7 +27,7 @@ export const handler = async (
     throw new Error("WEBHOOK_URL is not defined");
   }
 
-  // get bucket reference for the JSON version of EDI Transaction Set
+  // pull the transaction ID, partnership, etc from the incoming event in order to call the Get Transaction API
   const {
     detail: {
       transactionId,
@@ -38,15 +38,17 @@ export const handler = async (
     },
   } = event;
 
+  // lookup the if the partnership is configured for delivery
   const partnerConfiguration = configuration[partnershipId];
   if (partnerConfiguration === undefined)
     throw new Error(
       `No configuration found for partnershipId: '${partnershipId}'`
     );
 
+  // determine if a mapping is configured for the transaction setting
   const mappingId = partnerConfiguration[transactionSettingId];
 
-  // retrieve the txn json from Core
+  // retrieve the Guide JSON payload
   const core = coreClient();
   const getFile = await core.send(
     new GetTransactionOutputDocumentCommand({
@@ -75,12 +77,13 @@ export const handler = async (
     },
   };
 
+  // call the Mappings API to transform the Guide JSON if a mapping is defined
   const webhookPayload =
     mappingId === undefined
       ? JSON.stringify(combinedPayload)
       : await invokeMapping(mappingId, combinedPayload);
 
-  // send JSON to endpoint
+  // send mapped JSON to final destination
   const result = await fetch(webhookUrl, {
     method: "POST",
     headers: {
