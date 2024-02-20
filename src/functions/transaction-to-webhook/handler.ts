@@ -15,12 +15,12 @@ export const handler = async (
     throw new Error("WEBHOOK_URL is not defined");
   }
 
-  // get bucket reference for the JSON version of EDI Transaction Set
+  // pull the transaction ID from the incoming event in order to call the Get Transaction API
   const {
     detail: { transactionId },
   } = event;
 
-  // retrieve the txn json from Core
+  // retrieve the Guide JSON payload
   const core = coreClient();
   const getFile = await core.send(
     new GetTransactionOutputDocumentCommand({
@@ -39,7 +39,7 @@ export const handler = async (
   try {
     body = JSON.parse(bodyString);
   } catch (e) {
-    throw new Error("File is not a JSON file.");
+    throw new Error("Transaction is not in JSON format.");
   }
 
   const combinedPayload = {
@@ -49,12 +49,13 @@ export const handler = async (
     },
   };
 
+  // call the Mappings API to transform the Guide JSON if a mapping is defined
   const webhookPayload =
     process.env.MAPPING_ID === undefined
       ? JSON.stringify(combinedPayload)
       : await invokeMapping(process.env.MAPPING_ID, combinedPayload);
 
-  // send JSON to endpoint
+  // send mapped JSON to final destination
   const result = await fetch(webhookUrl, {
     method: "POST",
     headers: {
