@@ -6,10 +6,14 @@ import { GetTransactionOutputDocumentCommand } from "@stedi/sdk-client-core";
 import fetch from "node-fetch";
 import { mappingsClient } from "./lib/mappingsClient.js";
 
+// configuration for trading partners
 const configuration: { [key: string]: Record<string, string> } = {
+  // partnership ID
   "ThisIsMe-AnotherMerch": {
+    // format: "inbound transaction setting ID": "mapping ID"
     "4010-850": "mapping-id",
   },
+    // mappings are optional; if not defined the raw Guide JSON will be sent to the configured `WEBHOOK_URL`
   "ThisIstMe-SomeOtherMerch": {},
 };
 
@@ -21,13 +25,13 @@ type TransactionProcessedEvent = CoreTransactionProcessedEvent & {
 };
 
 export const handler = async (rawEvent: object) => {
-  // fail fast if WEBHOOK_URL env var is not defined
+  // fail fast if WEBHOOK_URL env var is not defined; WEBHOOK_URL is where the output of this function will be sent
   const webhookUrl = process.env.WEBHOOK_URL;
   if (webhookUrl === undefined) throw new Error("WEBHOOK_URL is not defined");
 
   if (process.env.STEDI_API_KEY === undefined)
     throw new Error(
-      "STEDI_API_KEY is not defined, and is required when this function is not deployed as a Stedi Function."
+      "STEDI_API_KEY is not defined."
     );
 
   // ensure the input matches expectations
@@ -43,7 +47,7 @@ export const handler = async (rawEvent: object) => {
     throw new Error("Unexpected input shape received.");
   }
 
-  // pull the transaction ID, partnership, etc from the incoming event in order to call the Get Transaction API
+  // pull the transaction ID, partnership, etc from the incoming event in order to call the Get Transactions API (https://www.stedi.com/docs/api-reference/core/get-transactions)
   const {
     detail: {
       transactionId,
@@ -54,7 +58,7 @@ export const handler = async (rawEvent: object) => {
     },
   } = event;
 
-  // lookup the if the partnership is configured for delivery
+  // check if the partnership is configured for delivery
   const partnerConfiguration = configuration[partnershipId];
   if (partnerConfiguration === undefined)
     throw new Error(
@@ -71,7 +75,7 @@ export const handler = async (rawEvent: object) => {
     transactionId,
     webhookUrl,
   });
-  // retrieve the Guide JSON payload
+  // retrieve the Guide JSON payload download link using the Get Transactions Output API (https://www.stedi.com/docs/api-reference/core/get-transactions-output); requires Stedi API key
   const core = coreClient();
   const getFile = await core.send(
     new GetTransactionOutputDocumentCommand({
@@ -79,10 +83,11 @@ export const handler = async (rawEvent: object) => {
     })
   );
 
+// Downloads from presigned URL (no API key required)
   const transactionOutputRequest = await fetch(getFile.documentDownloadUrl!);
 
   if (!transactionOutputRequest.ok)
-    throw new Error("Failed to download output artfiact.");
+    throw new Error("Failed to download output artifact.");
 
   const bodyString = await transactionOutputRequest.text();
   let body: unknown;
@@ -100,13 +105,13 @@ export const handler = async (rawEvent: object) => {
     },
   };
 
-  // call the Mappings API to transform the Guide JSON if a mapping is defined
+  // call the Mappings API to transform the Guide JSON if a mapping is defined (https://www.stedi.com/docs/api-reference/post-invoke-mapping)
   const webhookPayload =
     mappingId === undefined
       ? JSON.stringify(combinedPayload)
       : await invokeMapping(mappingId, combinedPayload);
 
-  // send mapped JSON to final destination
+  // send mapped JSON to configured WEBHOOK_URL endpoint; AUTHORIZATION is defined as an environment variable
   const result = await fetch(webhookUrl, {
     method: "POST",
     headers: {
