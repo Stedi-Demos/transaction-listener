@@ -6,8 +6,20 @@ import { GetTransactionOutputDocumentCommand } from "@stedi/sdk-client-core";
 import fetch from "node-fetch";
 import { mappingsClient } from "./lib/mappingsClient.js";
 
+const configuration: { [key: string]: Record<string, string> } = {
+  "ThisIsMe-AnotherMerch": {
+    "4010-850": "mapping-id",
+  },
+  "ThisIstMe-SomeOtherMerch": {},
+};
+
 export const handler = async (
-  event: CoreTransactionProcessedEvent & { detail: { transactionId: string } }
+  event: CoreTransactionProcessedEvent & {
+    detail: {
+      transactionId: string;
+      x12: { transactionSetting: { transactionSettingId: string } };
+    };
+  }
 ) => {
   // fail fast if WEBHOOK_URL env var is not defined
   const webhookUrl = process.env.WEBHOOK_URL;
@@ -17,8 +29,22 @@ export const handler = async (
 
   // get bucket reference for the JSON version of EDI Transaction Set
   const {
-    detail: { transactionId },
+    detail: {
+      transactionId,
+      partnership: { partnershipId },
+      x12: {
+        transactionSetting: { transactionSettingId },
+      },
+    },
   } = event;
+
+  const partnerConfiguration = configuration[partnershipId];
+  if (partnerConfiguration === undefined)
+    throw new Error(
+      `No configuration found for partnershipId: '${partnershipId}'`
+    );
+
+  const mappingId = partnerConfiguration[transactionSettingId];
 
   // retrieve the txn json from Core
   const core = coreClient();
@@ -50,9 +76,9 @@ export const handler = async (
   };
 
   const webhookPayload =
-    process.env.MAPPING_ID === undefined
+    mappingId === undefined
       ? JSON.stringify(combinedPayload)
-      : await invokeMapping(process.env.MAPPING_ID, combinedPayload);
+      : await invokeMapping(mappingId, combinedPayload);
 
   // send JSON to endpoint
   const result = await fetch(webhookUrl, {

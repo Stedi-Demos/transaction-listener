@@ -4,6 +4,7 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
+    "deploy": "npx stedi-integrations deploy",
     "test": "ava",
     "coverage": "c8 node ./node_modules/.bin/ava",
     "lint": "npx eslint --fix \"src/**/*.ts\""
