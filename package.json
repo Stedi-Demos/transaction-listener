@@ -1,0 +1,66 @@
+{
+  "name": "axny-functions",
+  "description": "Stedi Integrations SDK Project",
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "new-function": "npx stedi-integrations new-function",
+    "install-template": "npx stedi-integrations install-template",
+    "deploy": "npx stedi-integrations deploy",
+    "test": "ava",
+    "coverage": "c8 node ./node_modules/.bin/ava",
+    "lint": "npx eslint --fix \"src/**/*.ts\""
+  },
+  "devDependencies": {
+    "@ava/typescript": "4.1.0",
+    "@smithy/types": "1.2.0",
+    "@smithy/util-stream-node": "2.0.19",
+    "@stedi/integrations-sdk": "0.1.39",
+    "@stedi/sdk-client-as2": "0.4.61",
+    "@stedi/sdk-client-buckets": "0.4.61",
+    "@stedi/sdk-client-edi-translate": "0.4.61",
+    "@stedi/sdk-client-events": "0.4.61",
+    "@stedi/sdk-client-core": "^0.1.0-pre.0-7405682884-944c85a",
+    "@stedi/sdk-client-functions": "0.4.61",
+    "@stedi/sdk-client-guides": "0.4.61",
+    "@stedi/sdk-client-identity": "0.4.61",
+    "@stedi/sdk-client-mappings": "0.4.61",
+    "@stedi/sdk-client-partners": "0.4.61",
+    "@stedi/sdk-client-queues": "0.4.61",
+    "@stedi/sdk-client-sftp": "0.4.61",
+    "@stedi/sdk-client-stash": "0.4.61",
+    "@stedi/sdk-token-provider-aws-identity": "0.2.9",
+    "@types/cli-progress": "3.11.5",
+    "@types/node": "20.8.0",
+    "aws-sdk-client-mock": "3.0.0",
+    "ava": "5.3.1",
+    "c8": "8.0.1",
+    "cli-select": "1.1.2",
+    "dotenv": "16.3.1",
+    "esbuild": "0.18.20",
+    "fs-extra": "11.2.0",
+    "jszip": "3.10.1",
+    "ts-node": "10.9.2",
+    "typescript": "5.3.3",
+    "undici": "5.28.2",
+    "zod": "3.22.4"
+  },
+  "prettier": {
+    "useTabs": false
+  },
+  "ava": {
+    "environmentVariables": {
+      "WEBHOOK_URL": "https://example.com"
+    },
+    "typescript": {
+      "rewritePaths": {
+        "src/": "dist/"
+      },
+      "compile": "tsc"
+    }
+  },
+  "volta": {
+    "node": "18.19.0",
+    "npm": "9.9.2"
+  }
+}
