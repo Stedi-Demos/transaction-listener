@@ -49,7 +49,7 @@ If you expect to receive payloads greater than 1MB, you have your webhook listen
 
 When using Destinations webhooks to send `transaction.processed.v2` events **with** a mapping configured, the 1MB limit applies to the _output of the mapping_. Since the [Mappings API has an input limit](https://www.stedi.com/docs/mappings/limits) of 4MB, the Guide JSON transaction payload must be less than 4MB – and since Destinations has a 1MB limit on the output of the mapping, the output payload from the mapping must be less than 1MB.
 
-If either of these size limits are exceeded, Stedi considers the event delivery a failure and adds the event to the destination’s [error queue](https://www.stedi.com/docs/configure/destinations/webhook-error-handling#error-queue). In these cases, you would need to manually process a transaction, which is a tedious process. For this reason, **we don’t recommend using a destination with a mapping if you plan to receive payloads that might exceed 1MB in size at any point.**
+If either of these size limits are exceeded, Stedi considers the event delivery a failure and, after retrying the operation for 6 hours, adds the event to the destination’s [error queue](https://www.stedi.com/docs/configure/destinations/webhook-error-handling#error-queue). In these cases, you would need to manually process a transaction, which is a tedious process. For this reason, **we don’t recommend using a destination with a mapping if you plan to receive payloads that might exceed 1MB in size at any point.**
 
 Instead, you should:
 
